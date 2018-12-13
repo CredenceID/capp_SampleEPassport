@@ -1,4 +1,4 @@
-package com.cid.sample.epassport;
+package com.credenceid.sample.epassport;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -9,6 +9,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.credenceid.biometrics.Biometrics;
+import com.credenceid.biometrics.Biometrics.CardReaderStatusListener;
+import com.credenceid.biometrics.Biometrics.CloseReasonCode;
+import com.credenceid.biometrics.Biometrics.EpassportReaderStatusListener;
+import com.credenceid.biometrics.Biometrics.OnCardStatusListener;
+import com.credenceid.biometrics.Biometrics.OnEpassportCardStatusListener;
+import com.credenceid.biometrics.Biometrics.OnMrzDocumentStatusListener;
+import com.credenceid.biometrics.Biometrics.OnMrzReadListener;
+import com.credenceid.biometrics.Biometrics.ResultCode;
 import com.credenceid.biometrics.BiometricsManager;
 import com.credenceid.icao.ICAODocumentData;
 import com.credenceid.icao.ICAOReadIntermediateCode;
@@ -53,8 +61,10 @@ public class MRZActivity
 	private TextView mStatusTextView;
 	private ImageView mICAOImageView;
 	private TextView mICAOTextView;
+	private Button mReadMRZButton;
 	private Button mOpenMRZButton;
 	private Button mOpenRFButton;
+
 	/* This button should only be enabled if three conditions are all met.
 	 * 1. EPassport is open.
 	 * 2. MRZ has been read and document number, D.O.B., and D.O.E. have been captured
@@ -79,11 +89,11 @@ public class MRZActivity
 
 	/* Callback invoked each time MRZ reader is able to read MRZ text from document. */
 	@SuppressWarnings("SpellCheckingInspection")
-	private Biometrics.OnMrzReadListener mOnMrzReadListener = (Biometrics.ResultCode resultCode,
-															   String hint,
-															   byte[] rawData,
-															   String data,
-															   String parsedData) -> {
+	private OnMrzReadListener mOnMrzReadListener = (Biometrics.ResultCode resultCode,
+													String hint,
+													byte[] rawData,
+													String data,
+													String parsedData) -> {
 
 		Log.d(TAG, "OnMrzReadListener: Hit: " + hint);
 		Log.d(TAG, "OnMrzReadListener: ResultCode: " + resultCode.name());
@@ -121,12 +131,16 @@ public class MRZActivity
 			mDateOfBirth = splitData[mDATE_OF_BIRTH];
 			mDateOfExpiry = splitData[mDATE_OF_EXPIRY];
 
+			Log.i(TAG, "DOB: " + mDateOfBirth);
+			Log.i(TAG, "DocNum: " + mDocumentNumber);
+			Log.i(TAG, "DOE: " + mDateOfExpiry);
+
 			mHasMRZData = true;
 		}
 	};
 
 	/* Callback invoked each time C-Service detects a document change from MRZ reader. */
-	private Biometrics.OnMrzDocumentStatusListener mOnMrzDocumentStatusListener
+	private OnMrzDocumentStatusListener mOnMrzDocumentStatusListener
 			= (int previousState, int currentState) -> {
 
 		/* If currentState is not 2, then no document is present. */
@@ -136,18 +150,27 @@ public class MRZActivity
 		}
 
 		mStatusTextView.setText(getString(R.string.mrz_reading_wait));
-
-		/* If current state is 2, then a document is present on MRZ reader. If a document
-		 * is present we must read it to obtain MRZ field data. Call "readMRZ" to read the document.
-		 *
-		 * When MRZ is read this callback is invoked "mOnMrzReadListener".
-		 */
-		mBiometricsManager.readMRZ(mOnMrzReadListener);
 	};
 
 	/* Callback invoked each time sensor detects a document change from EPassport reader. */
-	private Biometrics.OnEpassportCardStatusListener mOnEpassportCardStatusListener
+	private OnEpassportCardStatusListener mOnEpassportCardStatusListener
 			= (int previousState, int currentState) -> {
+
+		/* If currentState is not 2, then no document is present. */
+		if (mDOCUMENT_PRESENT_CODE != currentState) {
+			Log.d(TAG, "Document was removed, no document present.");
+			mIsDocPresentOnEPassport = false;
+		} else {
+			mIsDocPresentOnEPassport = true;
+
+			/* Only if remaining other conditions (1 & 2) are met should button be enabled. */
+			mReadICAOButton.setEnabled(mHasMRZData && mIsEpassportOpen);
+		}
+	};
+
+
+	private OnCardStatusListener mOnCardStatusListener
+			= (String hint, int previousState, int currentState) -> {
 
 		/* If currentState is not 2, then no document is present. */
 		if (mDOCUMENT_PRESENT_CODE != currentState) {
@@ -190,13 +213,15 @@ public class MRZActivity
 		super.onDestroy();
 
 		/* If user presses back button then close all open peripherals. */
-		mBiometricsManager.ePassportCloseCommand();
+//		mBiometricsManager.ePassportCloseCommand();
+		mBiometricsManager.cardCloseCommand();
+
 		mBiometricsManager.closeMRZ();
 
-		/* If user presses back button then they are exiting application. If this is the case then
-		 * tell C-Service to unbind from this application.
-		 */
-		mBiometricsManager.finalizeBiometrics(false);
+//		/* If user presses back button then they are exiting application. If this is the case then
+//		 * tell C-Service to unbind from this application.
+//		 */
+//		mBiometricsManager.finalizeBiometrics(false)
 	}
 
 	/* Initializes all objects inside layout file. */
@@ -207,6 +232,7 @@ public class MRZActivity
 		mICAOImageView = findViewById(R.id.icao_dg2_imageview);
 		mICAOTextView = findViewById(R.id.icao_textview);
 
+		mReadMRZButton = findViewById(R.id.read_mrz);
 		mOpenMRZButton = findViewById(R.id.open_mrz_button);
 		mOpenRFButton = findViewById(R.id.open_epassport_buton);
 		mReadICAOButton = findViewById(R.id.read_icao_button);
@@ -227,25 +253,32 @@ public class MRZActivity
 			}
 		});
 
+		mReadMRZButton.setEnabled(false);
+		mReadMRZButton.setOnClickListener((View v) -> mBiometricsManager.readMRZ(mOnMrzReadListener));
+
 		mOpenRFButton.setEnabled(false);
-		mOpenRFButton.setText(getString(R.string.open_epassport));
+		mOpenRFButton.setText(getString(R.string.open_card));
 		mOpenRFButton.setOnClickListener((View v) -> {
 			/* Based on current state of EPassport reader take appropriate action. */
 			if (!mIsEpassportOpen)
-				openEPassportReader();
-			else mBiometricsManager.ePassportCloseCommand();
+				openCardReader();
+			else mBiometricsManager.cardCloseCommand();
+//			else mBiometricsManager.ePassportCloseCommand();
 		});
 
 		mReadICAOButton.setEnabled(false);
-		mReadICAOButton.setOnClickListener((View v) ->
-				this.readICAODocument(mDateOfBirth, mDocumentNumber, mDateOfExpiry)
-		);
+		mReadICAOButton.setOnClickListener((View v) -> {
+			this.readICAODocument(mDateOfBirth, mDocumentNumber, mDateOfExpiry);
+		});
 	}
 
 	/* Calls Credence APIs to open MRZ reader. */
 	private void
 	openMRZReader() {
 		mStatusTextView.setText(getString(R.string.mrz_opening));
+
+		/* When MRZ is read this callback is invoked "mOnMrzReadListener". */
+		mBiometricsManager.registerMrzReadListener(mOnMrzReadListener);
 
 		/* Register a listener that will be invoked each time MRZ reader's status changes. Meaning
 		 * that anytime a document is placed/removed invoke this callback.
@@ -269,6 +302,7 @@ public class MRZActivity
 				mStatusTextView.setText(getString(R.string.mrz_opened));
 				mOpenMRZButton.setText(getString(R.string.close_mrz));
 				mOpenRFButton.setEnabled(true);
+				mReadMRZButton.setEnabled(true);
 			}
 
 			@Override
@@ -283,7 +317,9 @@ public class MRZActivity
 				mOpenMRZButton.setText(getString(R.string.open_mrz));
 
 				mOpenRFButton.setEnabled(false);
-				mOpenRFButton.setText(getString(R.string.open_epassport));
+				mOpenRFButton.setText(getString(R.string.open_card));
+
+				mReadMRZButton.setEnabled(false);
 			}
 		});
 	}
@@ -299,9 +335,9 @@ public class MRZActivity
 		mBiometricsManager.registerEpassportCardStatusListener(mOnEpassportCardStatusListener);
 
 		/* Once our callback is registered we may now open the reader. */
-		mBiometricsManager.ePassportOpenCommand(new Biometrics.EpassportReaderStatusListener() {
+		mBiometricsManager.ePassportOpenCommand(new EpassportReaderStatusListener() {
 			@Override
-			public void onEpassportReaderOpen(Biometrics.ResultCode resultCode) {
+			public void onEpassportReaderOpen(ResultCode resultCode) {
 				if (FAIL == resultCode) {
 					mStatusTextView.setText(getString(R.string.epassport_open_failed));
 					return;
@@ -317,8 +353,9 @@ public class MRZActivity
 			}
 
 			@Override
-			public void onEpassportReaderClosed(Biometrics.ResultCode resultCode,
-												Biometrics.CloseReasonCode closeReasonCode) {
+			public void onEpassportReaderClosed(ResultCode resultCode,
+												CloseReasonCode closeReasonCode) {
+
 				/* Now that sensor is open, if user presses "mOpenRFButton" sensor should now
 				 * close. To achieve this we change flag which controls what action button takes.
 				 */
@@ -328,6 +365,46 @@ public class MRZActivity
 				mOpenRFButton.setEnabled(true);
 				mOpenRFButton.setText(getString(R.string.open_epassport));
 				mStatusTextView.setText(getString(R.string.epassport_closed));
+			}
+		});
+	}
+
+	private void
+	openCardReader() {
+		mStatusTextView.setText(getString(R.string.card_opening));
+
+		mBiometricsManager.registerCardStatusListener(mOnCardStatusListener);
+
+		mBiometricsManager.cardOpenCommand(new CardReaderStatusListener() {
+			@Override
+			public void onCardReaderOpen(ResultCode resultCode) {
+				if (FAIL == resultCode) {
+					mStatusTextView.setText(getString(R.string.card_open_failed));
+					return;
+				}
+
+				/* Now that sensor is open, if user presses "mOpenRFButton" sensor should now
+				 * close. To achieve this we change flag which controls what action button takes.
+				 */
+				mIsEpassportOpen = true;
+
+				mOpenRFButton.setText(getString(R.string.close_card));
+				mStatusTextView.setText(getString(R.string.card_opened));
+			}
+
+			@Override
+			public void onCardReaderClosed(ResultCode resultCode,
+										   CloseReasonCode closeReasonCode) {
+
+				/* Now that sensor is open, if user presses "mOpenRFButton" sensor should now
+				 * close. To achieve this we change flag which controls what action button takes.
+				 */
+				mIsEpassportOpen = false;
+
+				mReadICAOButton.setEnabled(false);
+				mOpenRFButton.setEnabled(true);
+				mOpenRFButton.setText(getString(R.string.open_card));
+				mStatusTextView.setText(getString(R.string.card_closed));
 			}
 		});
 	}
@@ -361,6 +438,10 @@ public class MRZActivity
 		/* Disable button so user does not initialize another readICAO document API call. */
 		mReadICAOButton.setEnabled(false);
 
+		dateOfBirth = dateOfBirth.split(":")[1].trim();
+		documentNumber = documentNumber.split(":")[1].trim();
+		dateOfExpiry = dateOfExpiry.split(":")[1].trim();
+
 		mBiometricsManager.readICAODocument(dateOfBirth, documentNumber, dateOfExpiry,
 				(Biometrics.ResultCode resultCode,
 				 ICAOReadIntermediateCode stage,
@@ -375,6 +456,26 @@ public class MRZActivity
 
 					/* Display ICAODocumentData to UI for user to see. */
 					mICAOTextView.setText(icaoDocumentData.toString());
+
+					if (OK == resultCode) {
+						if (ICAOReadIntermediateCode.BAC_SUCCESS == stage)
+							mStatusTextView.setText("BAC Done. Reading DG1...");
+						else if (ICAOReadIntermediateCode.DG1 == stage)
+							mStatusTextView.setText("DG1 Done. Reading DG2...");
+						else if (ICAOReadIntermediateCode.DG2 == stage)
+							mStatusTextView.setText("DG2 Done. Reading DG3...");
+						else if (ICAOReadIntermediateCode.DG3 == stage)
+							mStatusTextView.setText("Done reading document.");
+					} else if (FAIL == resultCode) {
+						if (ICAOReadIntermediateCode.BAC_SUCCESS == stage)
+							mStatusTextView.setText("BAC Failed. Cannot read document.");
+						else if (ICAOReadIntermediateCode.DG1 == stage)
+							mStatusTextView.setText("DG1 Failed.");
+						else if (ICAOReadIntermediateCode.DG2 == stage)
+							mStatusTextView.setText("DG2 Failed.");
+						else if (ICAOReadIntermediateCode.DG3 == stage)
+							mStatusTextView.setText("Done reading document.");
+					}
 
 					/* If DG2 state was successful then display read face image to ImageView. */
 					if (ICAOReadIntermediateCode.DG2 == stage && OK == resultCode)

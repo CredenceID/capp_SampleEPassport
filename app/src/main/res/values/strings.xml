@@ -17,6 +17,13 @@
 	<string name="epassport_opened">EPassport reader is open.</string>
 	<string name="epassport_closed">EPassport Reader is closed.</string>
 
+	<string name="open_card">Open Card</string>
+	<string name="close_card">Close Card</string>
+	<string name="card_opening">Opening card reader…</string>
+	<string name="card_open_failed">Failed to open card reader.</string>
+	<string name="card_opened">Card reader is open.</string>
+	<string name="card_closed">Card Reader is closed.</string>
+
 	<string name="mrz_failed_reswipe">Failed to read MRZ, please re-swipe document.</string>
 	<string name="mrz_reading_wait">Reading MRZ, please wait…</string>
 	<string name="mrz_read_success">MRZ successfully read.</string>
