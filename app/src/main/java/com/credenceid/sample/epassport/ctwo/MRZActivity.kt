@@ -63,6 +63,11 @@ class MRZActivity : Activity() {
             else App.BioManager!!.cardCloseCommand()
         }
 
+        // For test purpose, add Michael Passport info Here
+        dobEditText.setText("840324")
+        doeEditText.setText("290326")
+        docNumberEditText.setText("19CE04782")
+
         readICAOBtn.isEnabled = false
         readICAOBtn.setOnClickListener {
             icaoDG2ImageView.setImageBitmap(null)
@@ -178,25 +183,25 @@ class MRZActivity : Activity() {
 
             } else if (ICAOReadIntermediateCode.DG2 == stage) {
                 if (OK == rc) {
-                    icaoTextView.text = data.DG2.toString()
+                    //icaoTextView.text = data.DG2.toString()
                     icaoDG2ImageView.setImageBitmap(data.DG2.faceImage)
                 }
 
-            } else if (ICAOReadIntermediateCode.DG3 == stage) {
-                if (OK == rc)
-                    icaoTextView.text = data.DG3.toString()
-
-            } else if (ICAOReadIntermediateCode.DG7 == stage) {
-                if (OK == rc)
-                    icaoTextView.text = data.DG7.toString()
-
-            } else if (ICAOReadIntermediateCode.DG11 == stage) {
-                if (OK == rc)
-                    icaoTextView.text = data.DG1.toString()
-
-            } else if (ICAOReadIntermediateCode.DG12 == stage) {
-                if (OK == rc)
-                    icaoTextView.text = data.DG12.toString()
+//            } else if (ICAOReadIntermediateCode.DG3 == stage) {
+//                if (OK == rc)
+//                    icaoTextView.text = data.DG3.toString()
+//
+//            } else if (ICAOReadIntermediateCode.DG7 == stage) {
+//                if (OK == rc)
+//                    icaoTextView.text = data.DG7.toString()
+//
+//            } else if (ICAOReadIntermediateCode.DG11 == stage) {
+//                if (OK == rc)
+//                    icaoTextView.text = data.DG1.toString()
+//
+//            } else if (ICAOReadIntermediateCode.DG12 == stage) {
+//                if (OK == rc)
+//                    icaoTextView.text = data.DG12.toString()
 
                 statusTextView.text = getString(R.string.icao_done)
                 readICAOBtn.isEnabled = (isCardReaderOpen && isDocumentPresent)
