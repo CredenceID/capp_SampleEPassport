@@ -41,6 +41,8 @@ class LaunchActivity : Activity() {
                             Intent(this, com.credenceid.sample.epassport.ctab.MRZActivity::class.java)
                         DeviceFamily.CredenceTwo ->
                             Intent(this, com.credenceid.sample.epassport.ctwo.MRZActivity::class.java)
+                        DeviceFamily.CredenceECO ->
+                            Intent(this, com.credenceid.sample.epassport.ctwo.MRZActivity::class.java)
                         else -> return@initializeBiometrics
                     }
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
