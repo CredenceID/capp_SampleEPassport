@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/eco_home"
+        android:name="com.credenceid.sample.epassport.eco.mrtd.MRTDActivity"
+        android:label="@string/home_eco"
+        tools:layout="@layout/act_mrtd_eco" >
+    <action
+        android:id="@+id/action_EcoMrtdFragment_to_ReadIcaoMrzFragment"
+        app:destination="@id/eco_mrz_scan"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@animator/nav_default_pop_enter_anim"
+        app:popExitAnim="@animator/nav_default_pop_exit_anim"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/eco_mrz_scan"
+        android:name="com.credenceid.sample.epassport.eco.mrzscanner.ui.ScanIcaoMrzFragment"
+        android:label="@string/scan_mrz"
+        tools:layout="@layout/fragment_scan_icao_mrz" >
+
+    <action
+        android:id="@+id/action_ReadIcaoMrzFragment_to_EcoMrtdFragment"
+        app:destination="@id/eco_home"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@animator/nav_default_pop_enter_anim"
+        app:popExitAnim="@animator/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+</navigation>

@@ -17,7 +17,7 @@ import kotlinx.android.synthetic.main.act_mrz_ctab.*
 /**
  * Used for Android Logcat.
  */
-private val TAG = MRZActivity::class.java.simpleName
+private val TAG = MRTDActivity::class.java.simpleName
 /**
  * MRZ reader returns one giant string of data back. Once user splits this string by space
  * delimiter they are supposed to have ten elements. This constant can be used to confirm
@@ -58,7 +58,7 @@ private var isEPassportOpen = false
 private var hasMRZData = false
 private var isDocPresentOnEPassport = false
 
-class MRZActivity : Activity() {
+class MRTDActivity : Activity() {
     /**
      * "readICAOBtn" should only be enabled if three conditions are all met.
      * 1. EPassport is open.

@@ -1,7 +1,8 @@
-package com.credenceid.sample.epassport.ctwo
+package com.credenceid.sample.epassport.eco.mrtd
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import com.credenceid.biometrics.Biometrics.*
@@ -10,8 +11,18 @@ import com.credenceid.icao.ICAODocumentData
 import com.credenceid.icao.ICAOReadIntermediateCode
 import com.credenceid.sample.epassport.App
 import com.credenceid.sample.epassport.R
-import com.credenceid.sample.epassport.ctab.MRTDActivity
+import com.credenceid.sample.epassport.eco.mrzscanner.ui.ScanMrzActivity
+import kotlinx.android.synthetic.main.act_mrtd_eco.*
 import kotlinx.android.synthetic.main.act_mrz_ctwo.*
+import kotlinx.android.synthetic.main.act_mrz_ctwo.dobEditText
+import kotlinx.android.synthetic.main.act_mrz_ctwo.docNumberEditText
+import kotlinx.android.synthetic.main.act_mrz_ctwo.doeEditText
+import kotlinx.android.synthetic.main.act_mrz_ctwo.icaoDG2ImageView
+import kotlinx.android.synthetic.main.act_mrz_ctwo.icaoTextView
+import kotlinx.android.synthetic.main.act_mrz_ctwo.openCardBtn
+import kotlinx.android.synthetic.main.act_mrz_ctwo.readICAOBtn
+import kotlinx.android.synthetic.main.act_mrz_ctwo.statusTextView
+
 
 /**
  * Used for Android Logcat.
@@ -23,8 +34,11 @@ private val TAG = MRTDActivity::class.java.simpleName
 private var isCardReaderOpen = false
 private var isDocumentPresent = false
 
-class MRZActivity : Activity() {
+class MRTDActivity : Activity() {
 
+    companion object {
+        const val SCAN_MRZ_REQUEST_CODE = 999
+    }
     private var onCardStatusListener = OnCardStatusListener { _, _, currState ->
         if (currState in 2..6) {
             readICAOBtn.isEnabled = true
@@ -38,8 +52,11 @@ class MRZActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.act_mrz_ctwo)
+        setContentView(R.layout.act_mrtd_eco)
         this.configureLayoutComponents()
+
+
+
     }
 
     override fun onDestroy() {
@@ -69,6 +86,29 @@ class MRZActivity : Activity() {
             this.readICAODocument(dobEditText.text.toString(),
                     docNumberEditText.text.toString(),
                     doeEditText.text.toString())
+        }
+
+        scanMrzBtn.setOnClickListener {
+            val intent = Intent(this, ScanMrzActivity::class.java)
+            startActivityForResult(intent, SCAN_MRZ_REQUEST_CODE)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode == SCAN_MRZ_REQUEST_CODE) {
+            val mrzResultBirthDate = data?.getStringExtra(getString(R.string.birth_date_key))
+            val mrzResultExpirationDate= data?.getStringExtra(getString(R.string.expiration_date_key))
+            val mrzResultDocNumber= data?.getStringExtra(getString(R.string.doc_number_key))
+            if(null!= mrzResultBirthDate){
+                dobEditText.setText(mrzResultBirthDate)
+            }
+            if(null!= mrzResultExpirationDate){
+                doeEditText.setText(mrzResultExpirationDate)
+            }
+            if(null!= mrzResultDocNumber){
+                docNumberEditText.setText(mrzResultDocNumber)
+            }
         }
     }
 
