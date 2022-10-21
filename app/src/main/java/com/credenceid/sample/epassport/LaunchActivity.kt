@@ -78,6 +78,8 @@ class LaunchActivity : Activity() {
                             Intent(this, com.credenceid.sample.epassport.ctab.MRTDActivity::class.java)
                         DeviceFamily.CredenceTwo ->
                             Intent(this, com.credenceid.sample.epassport.ctwo.MRZActivity::class.java)
+                        DeviceFamily.CredenceThree ->
+                            Intent(this, com.credenceid.sample.epassport.eco.mrtd.MRTDActivity::class.java)
                         DeviceFamily.CredenceECO ->
                             Intent(this, com.credenceid.sample.epassport.eco.mrtd.MRTDActivity::class.java)
                         else -> return@initializeBiometrics
