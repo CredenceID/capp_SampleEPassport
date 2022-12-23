@@ -9,7 +9,7 @@
         tools:context=".eco.mrzscanner.ui.ScanIcaoMrzFragment">
 
         <androidx.camera.view.PreviewView
-            android:id="@+id/viewFinder"
+            android:id="@+id/cameraPreviewView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"

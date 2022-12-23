@@ -11,25 +11,22 @@ import android.widget.Toast.LENGTH_SHORT
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.credenceid.biometrics.Biometrics
-import com.credenceid.biometrics.Biometrics.ResultCode.*
+import com.credenceid.biometrics.Biometrics.ResultCode.* // ktlint-disable no-wildcard-imports
 import com.credenceid.biometrics.BiometricsManager
 import com.credenceid.biometrics.DeviceFamily
 import com.credenceid.sample.epassport.modules.useCaseModule
 import com.credenceid.sample.epassport.modules.viewModelModule
-import com.google.android.material.snackbar.Snackbar
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import timber.log.Timber
 
 class LaunchActivity : Activity() {
 
-
     companion object {
         private const val PERMISSION_REQUEST_CODE = 123
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
 
         Timber.plant(Timber.DebugTree())
@@ -57,14 +54,13 @@ class LaunchActivity : Activity() {
     }
 
     private fun initBiometrics() {
-
         /*  Create new biometrics object. */
         App.BioManager = BiometricsManager(this)
 
         /* Initialize object, meaning tell CredenceService to bind to this application. */
         App.BioManager!!.initializeBiometrics { rc: Biometrics.ResultCode,
-                                                _: String,
-                                                _: String ->
+            _: String,
+            _: String ->
 
             when (rc) {
                 OK -> {
@@ -87,7 +83,6 @@ class LaunchActivity : Activity() {
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
                     this.finish()
-
                 }
                 INTERMEDIATE -> {
                     /* This code is never returned for this API. */
@@ -96,7 +91,6 @@ class LaunchActivity : Activity() {
             }
         }
     }
-
 
     // Check permissions at runtime
     fun checkPermissions() {
@@ -109,18 +103,17 @@ class LaunchActivity : Activity() {
 
     val list = if (android.os.Build.VERSION.SDK_INT <= 30) {
         listOf(
-            Manifest.permission.CAMERA,
+            Manifest.permission.CAMERA
         )
     } else {
         listOf(
-            Manifest.permission.CAMERA,
+            Manifest.permission.CAMERA
         )
     }
 
-
     // Check permissions status
     private fun isPermissionsGranted(): Int {
-        var counter = 0;
+        var counter = 0
         for (permission in list) {
             counter += ContextCompat.checkSelfPermission(this, permission)
         }

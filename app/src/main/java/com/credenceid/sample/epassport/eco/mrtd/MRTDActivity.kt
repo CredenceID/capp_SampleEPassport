@@ -5,8 +5,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import com.credenceid.biometrics.Biometrics.*
-import com.credenceid.biometrics.Biometrics.ResultCode.*
+import com.credenceid.biometrics.Biometrics.* // ktlint-disable no-wildcard-imports
+import com.credenceid.biometrics.Biometrics.ResultCode.* // ktlint-disable no-wildcard-imports
 import com.credenceid.icao.ICAODocumentData
 import com.credenceid.icao.ICAOReadIntermediateCode
 import com.credenceid.sample.epassport.App
@@ -23,11 +23,11 @@ import kotlinx.android.synthetic.main.act_mrz_ctwo.openCardBtn
 import kotlinx.android.synthetic.main.act_mrz_ctwo.readICAOBtn
 import kotlinx.android.synthetic.main.act_mrz_ctwo.statusTextView
 
-
 /**
  * Used for Android Logcat.
  */
 private val TAG = MRTDActivity::class.java.simpleName
+
 /**
  * Keeps track of card reader sensor state.
  */
@@ -50,17 +50,12 @@ class MRTDActivity : Activity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.act_mrtd_eco)
         this.configureLayoutComponents()
-
-
-
     }
 
     override fun onDestroy() {
-
         super.onDestroy()
 
         /* Make sure to close all peripherals on application exit. */
@@ -72,20 +67,21 @@ class MRTDActivity : Activity() {
      * Configure all objects in layout file, set up listeners, views, etc.
      */
     private fun configureLayoutComponents() {
-
         openCardBtn.setOnClickListener {
             /* Based on current state of MRZ reader take appropriate action. */
-            if (!isCardReaderOpen)
+            if (!isCardReaderOpen) {
                 openCardReader()
-            else App.BioManager!!.cardCloseCommand()
+            } else App.BioManager!!.cardCloseCommand()
         }
 
         readICAOBtn.isEnabled = false
         readICAOBtn.setOnClickListener {
             icaoDG2ImageView.setImageBitmap(null)
-            this.readICAODocument(dobEditText.text.toString(),
-                    docNumberEditText.text.toString(),
-                    doeEditText.text.toString())
+            this.readICAODocument(
+                dobEditText.text.toString(),
+                docNumberEditText.text.toString(),
+                doeEditText.text.toString()
+            )
         }
 
         scanMrzBtn.setOnClickListener {
@@ -98,22 +94,21 @@ class MRTDActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == SCAN_MRZ_REQUEST_CODE) {
             val mrzResultBirthDate = data?.getStringExtra(getString(R.string.birth_date_key))
-            val mrzResultExpirationDate= data?.getStringExtra(getString(R.string.expiration_date_key))
-            val mrzResultDocNumber= data?.getStringExtra(getString(R.string.doc_number_key))
-            if(null!= mrzResultBirthDate){
+            val mrzResultExpirationDate = data?.getStringExtra(getString(R.string.expiration_date_key))
+            val mrzResultDocNumber = data?.getStringExtra(getString(R.string.doc_number_key))
+            if (null != mrzResultBirthDate) {
                 dobEditText.setText(mrzResultBirthDate)
             }
-            if(null!= mrzResultExpirationDate){
+            if (null != mrzResultExpirationDate) {
                 doeEditText.setText(mrzResultExpirationDate)
             }
-            if(null!= mrzResultDocNumber){
+            if (null != mrzResultDocNumber) {
                 docNumberEditText.setText(mrzResultDocNumber)
             }
         }
     }
 
     private fun openCardReader() {
-
         icaoDG2ImageView.setImageBitmap(null)
         statusTextView.text = getString(R.string.cardreader_opening)
 
@@ -143,8 +138,10 @@ class MRTDActivity : Activity() {
                 }
             }
 
-            override fun onCardReaderClosed(resultCode: ResultCode,
-                                            closeReasonCode: CloseReasonCode?) {
+            override fun onCardReaderClosed(
+                resultCode: ResultCode,
+                closeReasonCode: CloseReasonCode?
+            ) {
                 when (resultCode) {
                     OK -> {
                         /* Now that sensor is closed, if user presses "openCardBtn" sensor should
@@ -156,7 +153,6 @@ class MRTDActivity : Activity() {
                         statusTextView.text = getString(R.string.card_closed)
                         openCardBtn.text = getString(R.string.open_cardreader)
                         readICAOBtn.isEnabled = false
-
                     }
                     /* This code is never returned for this API. */
                     INTERMEDIATE -> {
@@ -175,10 +171,11 @@ class MRTDActivity : Activity() {
      * @param dateOfExpiry Date of expiry on ICAO document (YYMMDD format).
      */
     @SuppressLint("SetTextI18n")
-    private fun readICAODocument(dateOfBirth: String?,
-                                 documentNumber: String?,
-                                 dateOfExpiry: String?) {
-
+    private fun readICAODocument(
+        dateOfBirth: String?,
+        documentNumber: String?,
+        dateOfExpiry: String?
+    ) {
         /* If any one of three parameters is bad then do not proceed with document reading. */
         if (null == dateOfBirth || dateOfBirth.isEmpty()) {
             Log.w(TAG, "DateOfBirth parameter INVALID, will not read ICAO document.")
@@ -199,8 +196,7 @@ class MRTDActivity : Activity() {
         readICAOBtn.isEnabled = false
         statusTextView.text = getString(R.string.reading)
 
-        App.BioManager!!.readICAODocument(dateOfBirth, documentNumber, dateOfExpiry)
-        { rc: ResultCode, stage: ICAOReadIntermediateCode, hint: String?, data: ICAODocumentData ->
+        App.BioManager!!.readICAODocument(dateOfBirth, documentNumber, dateOfExpiry) { rc: ResultCode, stage: ICAOReadIntermediateCode, hint: String?, data: ICAODocumentData ->
 
             Log.d(TAG, "STAGE: " + stage.name + ", Status: " + rc.name + "Hint: $hint")
             Log.d(TAG, "ICAODocumentData: $data")
@@ -211,32 +207,31 @@ class MRTDActivity : Activity() {
                     statusTextView.text = getString(R.string.bac_failed)
                     readICAOBtn.isEnabled = (isCardReaderOpen && isDocumentPresent)
                 }
-
             } else if (ICAOReadIntermediateCode.DG1 == stage) {
-                if (OK == rc)
+                if (OK == rc) {
                     icaoTextView.text = data.DG1.toString()
-
+                }
             } else if (ICAOReadIntermediateCode.DG2 == stage) {
                 if (OK == rc) {
                     icaoTextView.text = data.DG2.toString()
                     icaoDG2ImageView.setImageBitmap(data.DG2.faceImage)
                 }
-
             } else if (ICAOReadIntermediateCode.DG3 == stage) {
-                if (OK == rc)
+                if (OK == rc) {
                     icaoTextView.text = data.DG3.toString()
-
+                }
             } else if (ICAOReadIntermediateCode.DG7 == stage) {
-                if (OK == rc)
+                if (OK == rc) {
                     icaoTextView.text = data.DG7.toString()
-
+                }
             } else if (ICAOReadIntermediateCode.DG11 == stage) {
-                if (OK == rc)
+                if (OK == rc) {
                     icaoTextView.text = data.DG1.toString()
-
+                }
             } else if (ICAOReadIntermediateCode.DG12 == stage) {
-                if (OK == rc)
+                if (OK == rc) {
                     icaoTextView.text = data.DG12.toString()
+                }
 
                 statusTextView.text = getString(R.string.icao_done)
                 readICAOBtn.isEnabled = (isCardReaderOpen && isDocumentPresent)

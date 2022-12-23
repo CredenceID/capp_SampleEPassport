@@ -2,7 +2,7 @@ package com.credenceid.sample.epassport.eco.mrzscanner.helpers
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.* // ktlint-disable no-wildcard-imports
 import android.util.AttributeSet
 import android.util.Size
 import android.view.View
@@ -13,7 +13,9 @@ import com.credenceid.sample.epassport.R
 import kotlin.math.min
 
 class ScannerOverlayImpl @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr), ScannerOverlay {
 
     private val transparentPaint: Paint by lazy {
@@ -32,12 +34,16 @@ class ScannerOverlayImpl @JvmOverloads constructor(
         }
     }
 
-    private var graphicBlocks : List<GraphicBlock>? = null
+    private var graphicBlocks: List<GraphicBlock>? = null
 
     init {
         setWillNotDraw(false)
-        val typedArray = context.obtainStyledAttributes(attrs,
-            R.styleable.ScannerOverlayImpl, 0, 0)
+        val typedArray = context.obtainStyledAttributes(
+            attrs,
+            R.styleable.ScannerOverlayImpl,
+            0,
+            0
+        )
         typedArray.recycle()
     }
 
@@ -69,7 +75,7 @@ class ScannerOverlayImpl @JvmOverloads constructor(
 
     override val scanRect: RectF
         get() =
-            if(context.isPortrait()) {
+            if (context.isPortrait()) {
                 val rectW = min(width * 0.95f, MAX_WIDTH_PORTRAIT)
                 val l = (width - rectW) / 2
                 val r = width - l

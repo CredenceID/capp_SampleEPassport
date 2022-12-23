@@ -67,5 +67,5 @@ class ScanIcaoMrzFragment : Fragment() {
     }
 
     val surfaceProvider: Preview.SurfaceProvider
-        get() = binding.viewFinder.surfaceProvider
+        get() = binding.cameraPreviewView.surfaceProvider
 }
